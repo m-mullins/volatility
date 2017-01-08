@@ -92,7 +92,7 @@ class kmem_cache_slab(kmem_cache):
                 t = slab.s_mem.v() + i * self.buffer_size
                 for d in range(len(DEBUG_LOCS)):
                     if (DEBUG_LOCS[d] >= t and DEBUG_LOCS[d] < t+self.buffer_size):
-                        print "Found the slab:",DEBUG_LOCS[d]
+                        print "Found the sk/packet_sock:",DEBUG_LOCS[d]
                         DEBUG_LOCS.pop(d)
                         break
 
@@ -123,7 +123,7 @@ class kmem_cache_slab(kmem_cache):
                     t = slab.s_mem.v() + i * self.buffer_size
                     for d in range(len(DEBUG_LOCS)):
                         if (DEBUG_LOCS[d] >= t and DEBUG_LOCS[d] < t+self.buffer_size):
-                            print "Found the slab:",DEBUG_LOCS[d]
+                            print "Found the sk/packet_sock:",DEBUG_LOCS[d]
                             DEBUG_LOCS.pop(d)
                             break
 
@@ -260,7 +260,7 @@ class linux_slabinfo(linux_common.AbstractLinuxCommand):
                         active_slabs,
                         num_slabs]
 
-            print "STILL LOCS?",DEBUG_LOCS
+            print "Remaining alloc locs?", len(DEBUG_LOCS)
 
     def render_text(self, outfd, data):
         self.table_header(outfd, [("<name>", "<30"),
