@@ -373,6 +373,7 @@ class volshell(common.AbstractWindowsCommand):
             """
 
             profile = (space or self._proc.obj_vm).profile
+            result = None
 
             if address is not None:
                 objct = obj.Object(objct, address, space or self._proc.get_process_address_space())
@@ -391,6 +392,7 @@ class volshell(common.AbstractWindowsCommand):
                     membs = [ (o, m) for m, (o, _c) in objct.members.items() ]
                     if not recursive:
                         print repr(objct)
+                        result = objct
                     offsets = []
                     for o, m in sorted(membs):
                         val = getattr(objct, m)
@@ -428,6 +430,8 @@ class volshell(common.AbstractWindowsCommand):
                 print "Error: could not instantiate object"
                 print
                 print "Reason: ", "displaying types with dynamic attributes is currently not supported"
+            
+            return result
 
         def dis(address, length = 128, space = None, mode = None):
             """Disassemble code at a given address.

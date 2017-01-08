@@ -15,6 +15,8 @@ symbols and then read the DWARF symbols from it.
 #include <net/udp.h>
 #include <linux/mount.h>
 #include <linux/inetdevice.h>
+//#include <net/packet/internal.h>
+#include "internal.h"
 #include <net/protocol.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)
@@ -78,6 +80,8 @@ struct uts_namespace uts_namespace;
 #endif
 
 struct sock sock;
+struct socket_alloc socket_alloc;
+struct packet_sock packet_sock;
 struct inet_sock inet_sock;
 struct vfsmount vfsmount;
 struct in_device in_device;
