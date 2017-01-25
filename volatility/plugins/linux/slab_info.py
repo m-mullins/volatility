@@ -26,6 +26,7 @@
 """
 
 import volatility.obj as obj
+import os
 import volatility.debug as debug
 import volatility.plugins.linux.common as linux_common
 
@@ -92,7 +93,7 @@ class kmem_cache_slab(kmem_cache):
                 t = slab.s_mem.v() + i * self.buffer_size
                 for d in range(len(DEBUG_LOCS)):
                     if (DEBUG_LOCS[d] >= t and DEBUG_LOCS[d] < t+self.buffer_size):
-                        print "Found the sk/packet_sock:",DEBUG_LOCS[d]
+                        print "outp:Found the sk/packet_sock:",DEBUG_LOCS[d],"alloced"
                         DEBUG_LOCS.pop(d)
                         break
 
@@ -117,17 +118,20 @@ class kmem_cache_slab(kmem_cache):
                 unallocated[i] = 1
                 i = bufctl[i]
 
-            for i in range(0, self.num):
-                if unallocated[i] == 0:
-                    objs += ['0x'+'%02x'%(slab.s_mem.v() + i * self.buffer_size)]
-                    t = slab.s_mem.v() + i * self.buffer_size
-                    for d in range(len(DEBUG_LOCS)):
-                        if (DEBUG_LOCS[d] >= t and DEBUG_LOCS[d] < t+self.buffer_size):
-                            print "Found the sk/packet_sock:",DEBUG_LOCS[d]
-                            DEBUG_LOCS.pop(d)
-                            break
-
-
+            for i in range(bufctl.count):
+                alloc = (unallocated[i] == 0)
+                allocinfo = "unalloc"
+                if alloc:
+                    allocinfo = "alloced"
+                    
+                t = slab.s_mem.v() + i * self.buffer_size
+                for d in range(len(DEBUG_LOCS)):
+                    if (DEBUG_LOCS[d] >= t and DEBUG_LOCS[d] < t+self.buffer_size):
+                        objs += ['0x'+'%02x'%(t)]
+                        print "outp:Found the sk/packet_sock:",DEBUG_LOCS[d],allocinfo
+                        DEBUG_LOCS.pop(d)
+                        break
+            
         return repr(objs)
 
     def __iter__(self):
@@ -210,17 +214,27 @@ class linux_slabinfo(linux_common.AbstractLinuxCommand):
         return []
 
     def calculate(self):
+        global DEBUG_LOCS
         linux_common.set_plugin_members(self)
 
         for cache in self.get_all_kmem_caches():
             if cache.get_type() == "slab":
-                if "size" in cache.get_name():
+                if os.path.isfile("/home/marto/getnode") and "size" in cache.get_name():
+                    DEBUG_LOCS=[int(open("/home/marto/getnode").read().rstrip())]
                     repr(cache)
 
-                if cache.get_name() == DEBUG_SLAB:
+                if os.path.isfile("/home/marto/dosearch") and "size-1024" in cache.get_name():
+                    print repr(cache)
+
+                if os.path.isfile("/home/marto/sockloc") and cache.get_name() == DEBUG_SLAB:
                     print cache.get_name()
                     print cache.buffer_size
                     print len(eval(repr(cache)))
+
+                if os.path.isfile("/home/marto/addr1024") and "size-1024" in cache.get_name():
+                    print "!!!"
+                    print repr(cache)
+                    print "!!!"
 
                 active_objs = 0
                 active_slabs = 0
@@ -230,17 +244,17 @@ class linux_slabinfo(linux_common.AbstractLinuxCommand):
 
                 cnt = 0;
                 for slab in cache._get_full_list():
-                    if cache.get_name() == DEBUG_SLAB:
+                    if os.path.isfile("/home/marto/sockloc") and cache.get_name() == DEBUG_SLAB:
                         for i in range(cache.num):
-                            pass
+                            print "outp:"+str(slab.s_mem.v() + i*cache.buffer_size)
 
                     active_objs += cache.num
                     active_slabs += 1
 
                 for slab in cache._get_partial_list():
-                    if cache.get_name() == DEBUG_SLAB:
+                    if os.path.isfile("/home/marto/sockloc") and cache.get_name() == DEBUG_SLAB:
                         for i in range(cache.num):
-                            pass
+                            print "outp:"+str(slab.s_mem.v() + i*cache.buffer_size)
 
                     active_objs += slab.inuse
                     active_slabs += 1
@@ -260,7 +274,7 @@ class linux_slabinfo(linux_common.AbstractLinuxCommand):
                         active_slabs,
                         num_slabs]
 
-            print "Remaining alloc locs?", len(DEBUG_LOCS)
+                #print "Remaining alloc locs?", len(DEBUG_LOCS)
 
     def render_text(self, outfd, data):
         self.table_header(outfd, [("<name>", "<30"),
